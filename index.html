@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>CMP 2019 Arterial Highway Performance Dashboard</title>
+	
+	<link rel="stylesheet" href="libs/jquery-ui-1.10.4.custom.min.css"/>
+	<link rel="stylesheet" href="css/arterial_dashboard.css"/>
+	
+	<script src="libs/modernizr-2.8.2-custom.min.js"></script>
+	<script src="libs/jquery-1.11.1.min.js"></script>
+	<script src="libs/jquery-ui-1.10.4.custom.min.js"></script>
+	<script src="libs/accessibleGrid.js"></script>  
+	<script src="libs/d3-4.8.0.min.js"></script>
+	<script src="libs/d3-tip-d3v4-index.js"></script>
+	<!--
+	<script src="CMP_Arterial_Routes.js"></script> 
+	<script src="CMP_Arterial_Themes.js"></script>
+	-->
+	<script src="libs/openlayers-4.2.0-ol.js"></script>
+	<link rel="stylesheet" href="https://openlayers.org/en/latest/css/ol.css" type="text/css">
+	<script src="libs/proj4js-2.4.3-proj4-src.js"></script>
+	<script src="js/cmp_arterial_dashboard.js"></script>  
+    <script>
+    (function(i,s,o,g,r,a,m){
+        i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();
+        a=s.createElement(o),m=s.getElementsByTagName(o)[0];
+        a.async=1;
+        a.src=g;
+        m.parentNode.insertBefore(a,m)})(window,
+                                         document,
+                                         "script",
+                                         "https://www.google-analytics.com/analytics.js",
+                                         "ga");
+        ga("create", "UA-39489988-1", {"cookieDomain":"auto"});
+        ga("set", "anonymizeIp", true);
+        ga("send", "pageview");
+    </script>   
+</head>
+<body>
+<p>
+	<div id="block-blue">
+	<img src="images/mpologo.png" alt="Boston Region MPO Logo" title="Boston Region MPO Logo">
+	</div>
+	<div id="block-right">
+			<h1>2019 Arterial Highway Performance Dashboard</h1>
+			<span id="radio_span_1">
+				<input type="radio" name="select_main_view" id="display_overview" class="main_display_choice_class" value="regional" checked="true">
+					<label for="display_overview">Regional Overview Map</label>
+				<input type="radio" name="select_main_view" id="display_detail" class="main_display_choice_class" value="by_route">
+					<label for="display_detail">Data by Route</label>
+			</span>
+			
+			<input type="button" id="reset_button" class="button_class" value="Reset Application"></input>
+			<span class="spanForButtonWithLink">
+				<input type="button" id="download_button" class="button_class" value="Download data"/>
+				<a id="downloadAnchorTag" href=""></a>			
+			</span>	
+			<button id="help_button"><img src="images/newwindow-example.gif" alt="help link opens new browser window" />Help</button>	
+		</span>
+	</div>
+</p>
+<span>&nbsp;</span>	
+<p>
+	<div id="sidebar_wrapper" class="sidebar_class">
+		<div id="sidebar_overview" class="overview_class">
+			<select id="selected_theme_overview" title="Select a theme for the overview map" class="combo_box_class"></select>	
+			<div id="overview_legend" class="legend_class"></div>			
+		</div>
+		<div id="sidebar_detail" class="sidebar_class detail_class">
+			<select id="selected_route" title="Select a route" class="combo_box_class"></select> 
+			<br>
+			<select id="selected_theme_detail" title="Select a theme for the detail map" class="combo_box_class"></select>
+			<br>
+			<div id="detail_legend" class="legend_class"></div>
+		</div>
+	</div>
+	<div id="main_wrapper" class="section_class">
+		<div id="overview_panel" class="overview_class" >
+			<div id="overview_map"></div>	
+		</div>
+		<div id="detail_panel" class="detail_class">
+			<div id="detail_map"></div>
+			<br/>
+			<span id="radio_span_2">
+				<input type="radio" name="display_choice" id="display_table" class="detail_display_choice_class" value="table" checked="true">
+					<label for="display_table">Accessible Table (All Data)</label>
+				<input type="radio" name="display_choice" id="display_graphic" class="detail_display_choice_class" value="graphic">
+					<label for="display_graphic">Chart for Selected Theme</label>
+			</span>
+			<div id="table_div" class="table_class"></div>
+			<br />
+			<div id="graphic_div" class="graphic_class"></div>	
+			<br />
+		</div>
+	</div>
+	<!--  DIVs for Overview Map Route Number Popup -->
+	<div id="overview_popup" title="Popup dialog box">
+		<span id="overview_popup_close_x">&times;</span>
+		<div id="overview_popup_text"></div>
+		<!--<input id="popup_ok" type="button" value="OK"></input>-->
+	</div>
+	<span id="overview_popup_test"></span>
+	<!--  DIVs for Detail Map Route Number Popup -->
+	<div id="detail_popup" title="Popup dialog box">
+		<span id="detail_popup_close_x">&times;</span>
+		<div id="detail_popup_text"></div>
+		<!--<input id="popup_ok" type="button" value="OK"></input>-->
+	</div>
+	<span id="detail_popup_test"></span>
+</p>	
+	
+	<script>
+	$(document).ready(function() {
+		initialize();	
+	});	
+	</script>  
+</body>
+</html>
