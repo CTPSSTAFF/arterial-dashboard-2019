@@ -1,14 +1,13 @@
-// Boston Region MPO Arterial Performance Dashboard
-// Previously known as "CMP Application, version 3"
+// Boston Region MPO 2019 Arterial Performance Dashboard
+// Derived from  Boston Regiono MPO 2015 Arterial Performance Dashboard
+//
 // Data source: processed INRIX data, GIS reference data
-// Data presentation: OpenLayers maps, accessible table, 
-//                    d3 visualizations, congestion scans in PNG format
-//                    (the latter are not yet available for the 2015 data)
+// Data presentation: OpenLayers maps, accessible table, d3 visualizations 
 
 // **************************************************************************************************************
 // Contents (in line-number order) of this file:
 //
-// 1.  Global scope object, and application object with most of its contents except larger functions
+// 1.  Miscellaneous state variables global to the app
 // 2.  createChart() - function to render d3 charts - the displayed metrics can be updated via the renderChart()
 // 	   closure function, which allows for user input to change the chart dimensions, dataStore, theme, color
 //     palette, and more (see renderData() for execution)
@@ -44,25 +43,33 @@
 // 9. CMP_Arterial_Themes - custom library to select map/visualization themes and OpenLayers 3 styles
 // **************************************************************************************************************
 
-//Global scope.
-var CTPS = {};
-// Application object.
-CTPS.cmpArtApp = {	};
-
-CTPS.cmpArtApp.szServerRoot = location.protocol + '//' + location.hostname;
-CTPS.cmpArtApp.szServerRoot += (location.hostname.includes('appsrvr3')) ? ':8080/geoserver/wfs' : '/maploc/wfs';
-CTPS.cmpArtApp.szWMSserverRoot = CTPS.cmpArtApp.szServerRoot + '/wms'; 
-CTPS.cmpArtApp.szWFSserverRoot = CTPS.cmpArtApp.szServerRoot + '/wfs';
+var szServerRoot = location.protocol + '//' + location.hostname;
+szServerRoot += (location.hostname.includes('appsrvr3')) ? ':8080/geoserver/wfs' : '/maploc/wfs';
+var szWMSserverRoot = CTPS.cmpArtApp.szServerRoot + '/wms'; 
+var szWFSserverRoot = CTPS.cmpArtApp.szServerRoot + '/wfs';
 
 // Click Tolerance for Route Number Popup
-CTPS.cmpArtApp.IDENTIFY_TOLERANCE = 5;
+var IDENTIFY_TOLERANCE = 5;
 
-CTPS.cmpArtApp.mapCenter = [232908.27147578463, 902215.0940791398];
-CTPS.cmpArtApp.mapZoom = 3.0;
-CTPS.cmpArtApp.store = [];// Data store.
-CTPS.cmpArtApp.aFeaturesGeo = [];	// Feature cache.
+// Map parameters
+var mapCenter = [232908.27147578463, 902215.0940791398],
+    mapZoom = 3.0;
 
-// OpenLayers Map Projection -- MA State Plane NAD83
+// Placeholders for OpenLayers map objects
+var overviewMap = {},
+    detailMap = {};
+	
+// Placeholder object for "speed data" (i.e., INRIX data) layer in overview map
+var oOverviewSpeedLayer = {};
+	
+// Placeholder object for highlight layer in detail map
+var oHighlightLayer = {};	
+
+// Tabular data store and spatial data feature cache
+var aDataStore = [], 	// Tabular data store
+    aFeaturesGeo = [];	// Geographic fature cache
+
+// OpenLayers Map Projection -- MA State Plane NAD83: "EPSG:26986"
 var projection = new ol.proj.Projection({
 	code: 'EPSG:26986',
 	extent: [33861.26,777514.31,330846.09,959747.44],
@@ -83,15 +90,15 @@ ol.proj.addCoordinateTransforms(
 	}
 );
 
-// Some useful rendering functions
-CTPS.cmpArtApp.fRenderLength = function(dLength) { if (dLength === null || dLength === undefined) { return("N/A"); } else {return(dLength.toFixed(2)); } },
-CTPS.cmpArtApp.fRenderSpeed = function(dSpeed) { if (dSpeed === null) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
-CTPS.cmpArtApp.fRenderCongSpeed = function(dSpeed) { if (dSpeed === 0) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
-CTPS.cmpArtApp.fRenderMinutes = function(dMinutes) { if (dMinutes === null) { return("N/A"); } else { return(dMinutes.toFixed(1)) } },
-CTPS.cmpArtApp.fRenderIndex = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } }
+// Some useful functions for formatted rendering of attribute values
+var fRenderLength = function(dLength) { if (dLength === null || dLength === undefined) { return("N/A"); } else {return(dLength.toFixed(2)); } },
+var fRenderSpeed = function(dSpeed) { if (dSpeed === null) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
+var fRenderCongSpeed = function(dSpeed) { if (dSpeed === 0) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
+var fRenderMinutes = function(dMinutes) { if (dMinutes === null) { return("N/A"); } else { return(dMinutes.toFixed(1)) } },
+var fRenderIndex = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } }
 
-// Renders reusable d3 chart with "data" from CTPS.cmpArtApp.store, and other used-input variables
-CTPS.cmpArtApp.createChart = function() {
+// Renders reusable d3 chart with "data" from aDataStore, and other used-input variables
+var createChart = function() {
 	var data = [],
 		containerWidth = 1125,
 		containerHeight = 230,
@@ -322,12 +329,13 @@ CTPS.cmpArtApp.createChart = function() {
 	};
 	return chart;
 	
-};
-CTPS.cmpArtApp.renderChart = CTPS.cmpArtApp.createChart();
+}; // createChart
+var renderChart = createChart();
 
 			
-// Renders data to an accessible table.
-CTPS.cmpArtApp.renderTable = function(dataStore, szRouteDesc) {
+// Function to render data in data store to an accessible table
+//
+var renderTable = function(dataStore, szRouteDesc) {
 	// Clear out previous table (if any).
 	$('#table_div').empty();
 	
@@ -364,41 +372,42 @@ CTPS.cmpArtApp.renderTable = function(dataStore, szRouteDesc) {
 	szSummary += 'PM congested speed, PM average speed, PM speed index, PM average travel-time index, ';
 	szSummary += 'PM delay and PM congested minutes.';
 	
-	CTPS.cmpArtApp.speedGrid = new AccessibleGrid( { divId 	:	'table_div',
+	var speedGrid = new AccessibleGrid( { divId 	:	'table_div',
 												  tableId 	:	't1',
 												  summary	: 	szSummary,
 												  caption	:	szRouteDesc,
 												  colDesc	: 	columnDesc } );	
-	CTPS.cmpArtApp.speedGrid.loadArrayData(dataStore); 	
-}; // CTPS.cmpArtApp.renderTable()
+	speedGrid.loadArrayData(dataStore); 	
+}; // renderTable()
 
-// Renders data to accessible table and d3 chart.
-CTPS.cmpArtApp.renderData = function(dataStore) {
+// Wrapper function to render data to an accessible table and d3 chart
+//
+var renderData = function(dataStore) {
 	// Collect "selected_route" and "selected_theme":
 	var szRouteDesc = $("#selected_route option:selected").text();
 	var iThemeId = +($("#selected_theme_detail option:selected").val());
 	
 	// Render the accessible table:
-	CTPS.cmpArtApp.renderTable(dataStore, szRouteDesc);
+	renderTable(dataStore, szRouteDesc);
 	
 	// Render the d3 chart:
 	if (iThemeId === 0) { return };
-	CTPS.cmpArtApp.renderChart.data(dataStore)
+	renderChart.data(dataStore)
 		.yAxisText(CMP_Arterial_Themes.aThemes[iThemeId].yAxisText)
 		.theme(CMP_Arterial_Themes.aThemes[iThemeId].theme)
 		.palette(CMP_Arterial_Themes.aThemes[iThemeId].palette)
 		.routeDesc(szRouteDesc)
 		.themeName(CMP_Arterial_Themes.aThemes[iThemeId].name);
 	d3.select('#graphic_div')
-		.call(CTPS.cmpArtApp.renderChart);
+		.call(renderChart);
 					  
-}; // CTPS.cmpArtApp.renderData()
+}; // renderData
 
 // Event handler for route combo box on-change event.
 // Event handler for 'selected_route' combobox selection. 
 //     1. Performs WFS request to fetch data.
 //     2. If WFS request is successful, calls CTPS.cmpArtApp.renderData to render data.
-CTPS.cmpArtApp.getData = function(){ 
+var getData = function(){ 
 	var szRouteDesc = $("#selected_route option:selected").text();
 	var iRouteId = +($("#selected_route option:selected").val());
 	$('#detail_popup').hide();
@@ -406,7 +415,7 @@ CTPS.cmpArtApp.getData = function(){
 	// Break out if no route selected, display nothing:
 	if (iRouteId === 0) {
 		alert('No route selected. Please select a route to display.');
-		CTPS.cmpArtApp.oHighlightLayer.getSource().clear();
+		oHighlightLayer.getSource().clear();
 		$('#detail_legend').hide();
 		$('#graphic_div').hide();
 		$('#table_div').hide();
@@ -416,7 +425,7 @@ CTPS.cmpArtApp.getData = function(){
 	
 	//  Submit WFS request to get data for route, and zoom map to it.
 	var cqlFilter = "(rid=='" + iRouteId + "')";
-	var szUrl = CTPS.cmpArtApp.szWFSserverRoot + '?';
+	var szUrl = szWFSserverRoot + '?';
 		szUrl += '&service=wfs';
 		szUrl += '&version=1.0.0';
 		szUrl += '&request=getfeature';
@@ -430,17 +439,17 @@ CTPS.cmpArtApp.getData = function(){
 			 dataType	: 'json',
 			 success	: 	function (data, textStatus, jqXHR) {	
 								var reader = new ol.format.GeoJSON();
-								CTPS.cmpArtApp.aFeaturesGeo = [];
-								CTPS.cmpArtApp.aFeaturesGeo = reader.readFeatures(jqXHR.responseText);
-								if (CTPS.cmpArtApp.aFeaturesGeo.length === 0) {
+								aFeaturesGeo = [];
+								aFeaturesGeo = reader.readFeatures(jqXHR.responseText);
+								if (aFeaturesGeo.length === 0) {
 									alert('WFS request in CTPS.cmpArtApp.getData returned no features.');
 									// CTPS.cmpArtApp.clear_selection();
 									return;
 								};
 								
 								// Clear data store and any existing features in OL Layer.
-								CTPS.cmpArtApp.store = [];
-								CTPS.cmpArtApp.oHighlightLayer.getSource().clear();
+								aDataStore = [];
+								oHighlightLayer.getSource().clear();
 								
 								// Loop through features returned, populate data store, 
 								// add features to layer, and set up bounds for animated transition.
@@ -450,9 +459,9 @@ CTPS.cmpArtApp.getData = function(){
 												miny: [],
 												maxx: [],
 												maxy: [] };
-								var vSource = CTPS.cmpArtApp.oHighlightLayer.getSource();
-								for (i = 0; i < CTPS.cmpArtApp.aFeaturesGeo.length; i++) {				
-									attrs = CTPS.cmpArtApp.aFeaturesGeo[i].getProperties();
+								var vSource = oHighlightLayer.getSource();
+								for (i = 0; i < aFeaturesGeo.length; i++) {				
+									attrs = aFeaturesGeo[i].getProperties();
 									var newFeature = new ol.Feature(attrs);
 									vSource.addFeature(newFeature);
 									
@@ -462,34 +471,34 @@ CTPS.cmpArtApp.getData = function(){
 									oBounds.maxx.push(oGeo[2]);
 									oBounds.maxy.push(oGeo[3]);							
 									
-									CTPS.cmpArtApp.store[i] = 	{	'MYID'		: i, 
-																	'COMMUNITY'	: attrs.community,					
-																	'FROM_MEAS'	: attrs.from_meas,
-																	'TO_MEAS'	: attrs.to_meas,
-																	'ROUTE_NUM'	: attrs.route_num,
-																	'DIRECTION'	: attrs.direction,
-																	'SEG_BEGIN'	: attrs.seg_begin,
-																	'SEG_END'	: attrs.seg_end, 
-																	'DISTANCE'  : attrs.distance,
-																	'LANES'		: attrs.lanes,
-																	'SPD_LIMIT'	: attrs.spd_limit,
-																	// AM stats
-																	'AM_AVG_SP'	: attrs.am_avg_sp, 
-																	'AM_CONG_SP': attrs.am_cong_sp,
-																	'AM_DELAY'	: attrs.am_delay,
-																	'AM_AVTT_IX': attrs.am_avtt_ix,
-																	'AM_5PTT_IX': attrs.am_5ptt_ix,												
-																	'AM_SPD_IX'	: attrs.am_spd_ix,
-																	'AM_CONG_MN': attrs.am_cong_mn,												
-																	// PM stats
-																	'PM_AVG_SP'	: attrs.pm_avg_sp,
-																	'PM_CONG_SP': attrs.pm_cong_sp,			
-																	'PM_DELAY'	: attrs.pm_delay,	
-																	'PM_AVTT_IX': attrs.pm_avtt_ix,
-																	'PM_5PTT_IX': attrs.pm_5ptt_ix,												
-																	'PM_SPD_IX'	: attrs.pm_spd_ix,	
-																	'PM_CONG_MN': attrs.pm_cong_mn
-																};	                                         
+									aDatastore[i] = {	'MYID'		: i, 
+														'COMMUNITY'	: attrs.community,					
+														'FROM_MEAS'	: attrs.from_meas,
+														'TO_MEAS'	: attrs.to_meas,
+														'ROUTE_NUM'	: attrs.route_num,
+														'DIRECTION'	: attrs.direction,
+														'SEG_BEGIN'	: attrs.seg_begin,
+														'SEG_END'	: attrs.seg_end, 
+														'DISTANCE'  : attrs.distance,
+														'LANES'		: attrs.lanes,
+														'SPD_LIMIT'	: attrs.spd_limit,
+														// AM stats
+														'AM_AVG_SP'	: attrs.am_avg_sp, 
+														'AM_CONG_SP': attrs.am_cong_sp,
+														'AM_DELAY'	: attrs.am_delay,
+														'AM_AVTT_IX': attrs.am_avtt_ix,
+														'AM_5PTT_IX': attrs.am_5ptt_ix,												
+														'AM_SPD_IX'	: attrs.am_spd_ix,
+														'AM_CONG_MN': attrs.am_cong_mn,												
+														// PM stats
+														'PM_AVG_SP'	: attrs.pm_avg_sp,
+														'PM_CONG_SP': attrs.pm_cong_sp,			
+														'PM_DELAY'	: attrs.pm_delay,	
+														'PM_AVTT_IX': attrs.pm_avtt_ix,
+														'PM_5PTT_IX': attrs.pm_5ptt_ix,												
+														'PM_SPD_IX'	: attrs.pm_spd_ix,	
+														'PM_CONG_MN': attrs.pm_cong_mn
+													};	                                         
 								};
 								
 								//  Legacy comment from Mary McShane:
@@ -502,14 +511,14 @@ CTPS.cmpArtApp.getData = function(){
 											return ((y.FROM_MEAS == x.FROM_MEAS) ? 0 : ((y.FROM_MEAS < x.FROM_MEAS) ? 1 : -1 ));
 									}
 								}; 
-								CTPS.cmpArtApp.store.sort(SortByFmeas); 
+								aDataStore.sort(SortByFmeas); 
 								
 								// Add the START_DISTANCE attribute to each record.
 								// The addition of this attribute simplifies chart generation.
 								var dCumDistance = 0; 
-								for (i = 0; i < CTPS.cmpArtApp.store.length; i = i + 1) {
-									CTPS.cmpArtApp.store[i].START_DISTANCE = dCumDistance;
-									dCumDistance = dCumDistance + parseFloat(CTPS.cmpArtApp.store[i].DISTANCE);
+								for (i = 0; i < aDataStore.length; i = i + 1) {
+									aDataStore[i].START_DISTANCE = dCumDistance;
+									dCumDistance = dCumDistance + parseFloat(store[i].DISTANCE);
 								};
 								
 								// Animated transition
@@ -517,19 +526,15 @@ CTPS.cmpArtApp.getData = function(){
 														Math.min.apply(null,oBounds.miny),
 														Math.max.apply(null,oBounds.maxx),
 														Math.max.apply(null,oBounds.maxy)	];								
-								CTPS.cmpArtApp.detailMap.getView().fit(
-									oBoundsRoute, 
-									{ size: CTPS.cmpArtApp.detailMap.getSize(),
-									  duration: 2000 }
-								);
+								detailMap.getView().fit(oBoundsRoute, { size: detailMap.getSize(),duration: 2000 });
 								
 								// Add features to vector layer.
-								CTPS.cmpArtApp.oHighlightLayer.setSource(vSource);
+								oHighlightLayer.setSource(vSource);
 								
 								// Render data
-								CTPS.cmpArtApp.renderData(CTPS.cmpArtApp.store);
+								renderData(store);
 								// Refresh detail sub-display.
-								CTPS.cmpArtApp.refreshDetailDisplay();
+								refreshDetailDisplay();
 							},
 			 error		: 	function (qXHR, textStatus, errorThrown ) {
 								alert('WFS request in timerFunc failed.\n' +
@@ -537,41 +542,36 @@ CTPS.cmpArtApp.getData = function(){
 										'Error:  ' + errorThrown);
 							}							
 	});  //    END OpenLayers WFS request 
+};  // getData
 
-};  // CTPS.cmpArtApp.getData()
-
-CTPS.cmpArtApp.showSelectedGraphic = function(iThemeId) {
+var showSelectedGraphic = function(iThemeId) {
 	if (iThemeId === 0) {
 		alert("No theme selected. Please select a theme and route to display chart.");
 		$('#detail_legend').hide();
 		$('#graphic_div').hide();
 	} else if (iThemeId > 0 && iThemeId < CMP_Arterial_Themes.aThemes.length) {
-		CTPS.cmpArtApp.renderData(CTPS.cmpArtApp.store);
+		CTPS.cmpArtApp.renderData(store);
 		$('#graphic_div').show();
 	} else {
 		alert("Invalid theme ID: " + iThemeId);
 	}
-} // CTPS.cmpArtApp.showSelectedGraphic()
+} // showSelectedGraphic
 
 // Set theme and legend for the 'overview' map.
-CTPS.cmpArtApp.setOverviewMapTheme = function() {
+var setOverviewMapTheme = function() {
 	var iThemeId = +($("#selected_theme_overview option:selected").val());  
 	$('#overview_popup').hide();
 	
 	if (iThemeId === 0) {
 		alert("No theme selected");
-		CTPS.cmpArtApp.oOverviewSpeedData.setVisible(false);
+		oOverviewSpeedLayer.setVisible(false);
 		$('#overview_legend').hide();
 	} else if (iThemeId > 0 && iThemeId < CMP_Arterial_Themes.aThemes.length) {
-		
 		var params = {};
 		params.STYLES = CMP_Arterial_Themes.aThemes[iThemeId].sld;
-		
-		var source = CTPS.cmpArtApp.oOverviewSpeedData.getSource();
+		var source = oOverviewSpeedLayer.getSource();
 		source.updateParams(params);
-		
-		CTPS.cmpArtApp.oOverviewSpeedData.setVisible(true);			
-		
+		oOverviewSpeedLayer.setVisible(true);			
 /*
 		CTPS.cmpArtApp.oOverviewSpeedData.setSource(
 			new ol.source.TileWMS({
@@ -584,28 +584,27 @@ CTPS.cmpArtApp.setOverviewMapTheme = function() {
 		);
 		CTPS.cmpArtApp.oOverviewSpeedData.setVisible(true);	
 */
-
 		// Set legend.
 		$('#overview_legend').html('<img src="images/' + CMP_Arterial_Themes.aThemes[iThemeId].legend + '"></img>');		
 		$('#overview_legend').show();
 	} else {
 		alert("Invalid theme ID: " + iThemeId);
 	}
-}; // CTPS.cmpArtApp.setOverviewMapTheme()
+}; // setOverviewMapTheme
 
 // Set theme and legend for 'detail' map and d3 visualization.
-CTPS.cmpArtApp.setDetailMapTheme = function() {
+var setDetailMapTheme = function() {
 	var iThemeId = +($("#selected_theme_detail option:selected").val());
 	var	ix = +($("#selected_route option:selected").val());
 	$('#detail_popup').hide();
 	
 	if (iThemeId === 0) {
 		alert("No theme selected.");
-		CTPS.cmpArtApp.oHighlightLayer.setStyle(CMP_Arterial_Themes.aThemes[iThemeId].style);
+		oHighlightLayer.setStyle(CMP_Arterial_Themes.aThemes[iThemeId].style);
 		$('#detail_legend').hide();
 		$('#graphic_div').hide();
 	} else if (iThemeId > 0 && iThemeId < CMP_Arterial_Themes.aThemes.length) {
-		CTPS.cmpArtApp.oHighlightLayer.setStyle(CMP_Arterial_Themes.aThemes[iThemeId].style);
+		oHighlightLayer.setStyle(CMP_Arterial_Themes.aThemes[iThemeId].style);
 		// Set legend.
 		$('#detail_legend').html('<img src="images/' + CMP_Arterial_Themes.aThemes[iThemeId].legend + '"></img>');
 		$('#detail_legend').show();
@@ -615,39 +614,41 @@ CTPS.cmpArtApp.setDetailMapTheme = function() {
 		if (szRadioId === 'display_graphic') {
 			$('.graphic_class').hide();
 			if (iThemeId > 0 && ix > 0) {	// The 0th <option> element is the one for "Select a theme"
-				CTPS.cmpArtApp.showSelectedGraphic(iThemeId);
+				showSelectedGraphic(iThemeId);
 			};
 		};		
 	} else {
 		alert("Invalid theme ID: " + iThemeId);	
 	}			
-}; // CTPS.cmpArtApp.setDetailMapTheme()
+}; // setDetailMapTheme
 
-CTPS.cmpArtApp.DISPLAY_FORMAT_TABLE = 0;
-CTPS.cmpArtApp.DISPLAY_FORMAT_CHART = 1;
-CTPS.cmpArtApp.DISPLAY_FORMAT_SCAN = 2;
-CTPS.cmpArtApp.detailDisplayFormat = CTPS.cmpArtApp.DISPLAY_FORMAT_TABLE;
+// Enums for detail display option values
+var DISPLAY_FORMAT_TABLE = 0,
+    DISPLAY_FORMAT_CHART = 1,
+    DISPLAY_FORMAT_SCAN  = 2; // To be removed
+var detailDisplayFormat = DISPLAY_FORMAT_TABLE;
 
-CTPS.cmpArtApp.refreshDetailDisplay = function() {
+var refreshDetailDisplay = function() {
 	var	ix = +($("#selected_route option:selected").val());
 	var iThemeId = +($("#selected_theme_detail option:selected").val());
-	switch (CTPS.cmpArtApp.detailDisplayFormat) {
-		case CTPS.cmpArtApp.DISPLAY_FORMAT_TABLE:
+	switch (detailDisplayFormat) {
+		case DISPLAY_FORMAT_TABLE:
 			$('.graphic_class').hide();
 			$('.congestion_scan_container_class').hide();
 			if (ix > 0) {  // The 0th <option> element is the one for "Select a route"
 				$('.table_class').show();
-			};
+			}
 			break;
-		case CTPS.cmpArtApp.DISPLAY_FORMAT_CHART:
+		case DISPLAY_FORMAT_CHART:
 			$('.table_class').hide();
 			$('.congestion_scan_container_class').hide();
 			// Show only the graphic_div corresponding to the selected map theme.
 			if (iThemeId > 0 && ix > 0) {	// The 0th <option> element is the one for "Select a theme"
 				CTPS.cmpArtApp.showSelectedGraphic(iThemeId);
-			};	
+			};
 			break;
-		case CTPS.cmpArtApp.DISPLAY_FORMAT_SCAN:
+		// *** THIS CASE TO BE REMOVED ***
+		case DISPLAY_FORMAT_SCAN:
 			$('.table_class').hide();
 			$('.graphic_class').hide();
 			// Show only the congestion scan div corresponding to the selected route.
@@ -656,34 +657,34 @@ CTPS.cmpArtApp.refreshDetailDisplay = function() {
 			if (ix > 0) {  // The 0th <option> element is the one for "Select a route"
 				var szDivId = CMP_Arterial_Routes.oRoutes.aRouteList[ix - 1].CONGESTION_SCAN_DIV; 
 				$('#' + szDivId).show();
-			};
+			}
 			break;
 		default: 
 			break;
 	}
-}; // CTPS.cmpArtApp.refreshDetailDisplay()
+}; // refreshDetailDisplay
 
 // Handles toggling between table, graphic, and congestion scan sub-displays on 'detail' panel.
-CTPS.cmpArtApp.setDetailDisplayFormat = function(e) {
+var setDetailDisplayFormat = function(e) {
 	var oElement, szTheme, szThemeId, iThemeid, ix, szDivId;
 	switch(e.target.id) {
 		case 'display_table':
-			CTPS.cmpArtApp.detailDisplayFormat = CTPS.cmpArtApp.DISPLAY_FORMAT_TABLE;
+			detailDisplayFormat = DISPLAY_FORMAT_TABLE;
 			break;
 		case 'display_graphic':
-			CTPS.cmpArtApp.detailDisplayFormat = CTPS.cmpArtApp.DISPLAY_FORMAT_CHART;
+			detailDisplayFormat = DISPLAY_FORMAT_CHART;
 			break;
 		case 'display_congestion_scan':
-			CTPS.cmpArtApp.detailDisplayFormat = CTPS.cmpArtApp.DISPLAY_FORMAT_SCAN;
+			detailDisplayFormat = DISPLAY_FORMAT_SCAN;
 			break;
 		default:
 			break;
-	};
-	CTPS.cmpArtApp.refreshDetailDisplay();
-}; // CTPS.cmpArtApp.setDetailDisplayFormat()
+	}
+	refreshDetailDisplay();
+}; // setDetailDisplayFormat
 
 // Toggle between 'overview' (regional) and 'detail' (by-route) displays.
-CTPS.cmpArtApp.setMainDisplay = function(e) {
+var setMainDisplay = function(e) {
 	if (e.target.id === 'display_overview') {
 		$('.detail_class').hide();
 		$('.overview_class').show();
@@ -696,16 +697,16 @@ CTPS.cmpArtApp.setMainDisplay = function(e) {
 			$('#detail_popup').hide();
 		});	
 	};
-}; // CTPS.cmpArtApp.setMainDisplay()
+}; // setMainDisplay
 
 // On-click event handler for 'Reset Application' button.
-CTPS.cmpArtApp.resetApplication = function() {
+var resetApplication = function() {
 	var oElement;
 	
 	// Reset the 'overview' panel.
-	CTPS.cmpArtApp.oOverviewSpeedData.setVisible(false);
-	CTPS.cmpArtApp.overviewMap.getView().setCenter(CTPS.cmpArtApp.mapCenter);
-	CTPS.cmpArtApp.overviewMap.getView().setZoom(CTPS.cmpArtApp.mapZoom);	
+	oOverviewSpeedLayer.setVisible(false);
+	overviewMap.getView().setCenter(mapCenter);
+	overviewMap.getView().setZoom(mapZoom);	
 
 	oElement = $('#selected_theme_overview').get(0);
 	oElement.selectedIndex = 0;
@@ -714,9 +715,9 @@ CTPS.cmpArtApp.resetApplication = function() {
 	$('#display_detail').prop('checked', false).button('refresh');
 	
 	// Reset the 'detail' panel.
-    CTPS.cmpArtApp.oHighlightLayer.getSource().clear();
-	CTPS.cmpArtApp.detailMap.getView().setCenter(CTPS.cmpArtApp.mapCenter);
-	CTPS.cmpArtApp.detailMap.getView().setZoom(CTPS.cmpArtApp.mapZoom);
+    oHighlightLayer.getSource().clear();
+	detailMap.getView().setCenter(mapCenter);
+	detailMap.getView().setZoom(mapZoom);
 	
 	oElement = $('#selected_route').get(0);
 	oElement.selectedIndex = 0;
@@ -738,20 +739,20 @@ CTPS.cmpArtApp.resetApplication = function() {
 	// and the 'detail' panel is hidden.
 	$('.detail_class').hide();
 	$('.overview_class').show();
-}; // CTPS.cmpArtApp.resetApplication()
+}; // resetApplication
 
-// Route Number Popup - Event Handler for Click On Map
-CTPS.cmpArtApp.onClick = function(coord,px) {
-	var oUpperLeft = CTPS.cmpArtApp.overviewMap.getCoordinateFromPixel([(px[0]+(-1*CTPS.cmpArtApp.IDENTIFY_TOLERANCE)),(px[1]+CTPS.cmpArtApp.IDENTIFY_TOLERANCE)]);
-	var oLowerRight = CTPS.cmpArtApp.overviewMap.getCoordinateFromPixel([(px[0]+CTPS.cmpArtApp.IDENTIFY_TOLERANCE),(px[1]+(-1*CTPS.cmpArtApp.IDENTIFY_TOLERANCE))]);
+// Route Number Popup - event handler for on-click event on overview map
+var overviewMapOnClick = function(coord,px) {
+	var oUpperLeft = overviewMap.getCoordinateFromPixel([(px[0]+(-1*IDENTIFY_TOLERANCE)),(px[1]+IDENTIFY_TOLERANCE)]);
+	var oLowerRight = overviewMap.getCoordinateFromPixel([(px[0]+IDENTIFY_TOLERANCE),(px[1]+(-1*IDENTIFY_TOLERANCE))]);
 	var oBoundsString = oUpperLeft[0].toString() + "," + oUpperLeft[1].toString() + "," + oLowerRight[0].toString() + "," + oLowerRight[1].toString();
 	
 	//  Submit WFS request to get data for route, and zoom map to it.
-	var szUrl = CTPS.cmpArtApp.szWFSserverRoot + '?';
+	var szUrl = szWFSserverRoot + '?';
 		szUrl += '&service=wfs';
 		szUrl += '&version=1.0.0';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=postgis:ctps_cmp_2015_art_routes_ext';
+		szUrl += '&typename=postgis:ctps_cmp_2015_art_routes_ext';	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&bbox=' + oBoundsString + ',EPSG:26986';
@@ -772,17 +773,17 @@ CTPS.cmpArtApp.onClick = function(coord,px) {
 									var attrs = [];
 									for (i = 0; i < aFeatures.length; i++) {				
 										attrs = aFeatures[i].getProperties();
-									};
+									}
 									var popupHTML = attrs.RTE_NAME;
 									if (attrs.RTE_NAME === "NULL") {
 										var popupHTML = attrs.ROAD_NAME;
-									};
+									}
 									$("#overview_popup_test").text(Array(popupHTML_length+1).join("M"));
 									$("#overview_popup").width($("#overview_popup_test").width());
 									$("#overview_popup_text").html("<br><strong>" + popupHTML + "<br>");
-									CTPS.cmpArtApp.overviewPopup.setPosition(coord);
+									overviewPopup.setPosition(coord);
 									$('#overview_popup').show();
-								};
+								}
 							},
 			 error		: 	function (qXHR, textStatus, errorThrown ) {
 								alert('WFS request in timerFunc failed.\n' +
@@ -790,14 +791,14 @@ CTPS.cmpArtApp.onClick = function(coord,px) {
 										'Error:  ' + errorThrown);
 							}							
 	});
-};
+}; // overview map on-click event handler 
 
 // Initializes 'detail' map and UI controls associated with it.
-CTPS.cmpArtApp.initDetailMap = function() {
+var initDetailMap = function() {
 	// Base layer: ocean background, NE states, MA towns, MPO boundary ('transparent' === false)
 	var oBaseLayer = new ol.layer.Tile({	
 		source: new ol.source.TileWMS({
-			url		:  CTPS.cmpArtApp.szWMSserverRoot,
+			url		:  szWMSserverRoot,
 			params	: {
 				'LAYERS': [	'postgis:ctps_oceanmask_poly_small',
 							'postgis:mgis_nemask_poly',
@@ -824,11 +825,11 @@ CTPS.cmpArtApp.initDetailMap = function() {
 	});	
 				
 	// Layer with INRIX speed data.
-	var oSpeedData = new ol.layer.Tile({	
+	var oDetailSpeedLayer = new ol.layer.Tile({	
 		source: new ol.source.TileWMS({
 			url		: CTPS.cmpArtApp.szWMSserverRoot,
 			params	: {
-				'LAYERS': 'postgis:ctps_cmp_2015_art_routes_ext',
+				'LAYERS': 'postgis:ctps_cmp_2015_art_routes_ext',	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 				'STYLES': 'line',
 				'TRANSPARENT': 'true'
 			}
@@ -836,15 +837,16 @@ CTPS.cmpArtApp.initDetailMap = function() {
 		visible: false
 	});	
      
-	// Vector layer with variable styles.
-    CTPS.cmpArtApp.oHighlightLayer = new ol.layer.Vector({
+	// Vector layer with variable styles for detail map.
+	// Note: This object is _declared_ global to the page, but is actually "populated" here.
+    oHighlightLayer = new ol.layer.Vector({
 		source	: new ol.source.Vector({
 			wrapX: false 
 		})
 	});
 	
 	// Popup Overlay
-	CTPS.cmpArtApp.detailPopup = new ol.Overlay({
+	var detailPopup = new ol.Overlay({
 		element	: document.getElementById('detail_popup'),
 		offset : [-48,-11],
 		positioning : 'bottom-left',
@@ -852,10 +854,12 @@ CTPS.cmpArtApp.initDetailMap = function() {
 		//autoPanAnimation : { duration : 250 }
 	});
 	
-	// N.B. No 'div' option provided here!
-	// This map will be rendered to the "detail_map" div using 
-	// delayed rendering in CTPS.cmpArtApp.setMainDisplay().
-    CTPS.cmpArtApp.detailMap = new ol.Map({
+	// NOTES: 	1. This object is _declared_ global to the page to facilitate debugging,
+	//             but is actually populated here.
+	//          2. No 'div' option provided here!
+	//             This map will be rendered to the "detail_map" div using 
+	//             delayed rendering in setMainDisplay().
+    detailMap = new ol.Map({
 		//target	: 'detail_map',
 		controls: ol.control.defaults().extend([
 			new ol.control.ScaleLine({
@@ -864,25 +868,23 @@ CTPS.cmpArtApp.initDetailMap = function() {
 		]),
 		layers	: [	oBaseLayer,
 					oRoads,
-					oSpeedData,
-					CTPS.cmpArtApp.oHighlightLayer ],
-		overlays: [CTPS.cmpArtApp.detailPopup],
-		view	: new ol.View({
-			projection: projection,
-			center	: CTPS.cmpArtApp.mapCenter,
-			zoom	: CTPS.cmpArtApp.mapZoom
-		})
+					oDetailSpeedData,
+					oHighlightLayer ],
+		overlays: [detailPopup],
+		view	: new ol.View({	projection	: projection,
+								center		: mapCenter,
+								zoom		: mapZoom })
 	});
 	
-	// Event Handler for Click on Map	
-	CTPS.cmpArtApp.detailMap.on('singleclick', function(e) {
+	// On-click event handler for _detail_ map	
+	detailMap.on('singleclick', function(e) {
 		var coord = e.coordinate;
 		var iThemeId = +($("#selected_theme_detail option:selected").val());
 		var theme = CMP_Arterial_Themes.aThemes[iThemeId].theme;
 		var palette = CMP_Arterial_Themes.aThemes[iThemeId].palette;
 		
 		// Show:	
-		CTPS.cmpArtApp.detailMap.forEachFeatureAtPixel(e.pixel, function (feature, layer) {
+		detailMap.forEachFeatureAtPixel(e.pixel, function (feature, layer) {
 			var popupHTML_begin = "Segment Begin: " + feature.getProperties().seg_begin;
 			var popupHTML_end = "Segment End: " + feature.getProperties().seg_end;
 			var popupHTML_dist = "Length: " + feature.getProperties().distance.toFixed(2);
@@ -890,24 +892,24 @@ CTPS.cmpArtApp.initDetailMap = function() {
 			switch(theme) {
 				case "AM_CONG_MN":
 				case "PM_CONG_MN":
-					measure = CTPS.cmpArtApp.fRenderMinutes(feature.getProperties()[theme.toLowerCase()]);
+					measure = fRenderMinutes(feature.getProperties()[theme.toLowerCase()]);
 					label_begin = "Congested Time: ";
 					label_end = " minutes";
 					break;
 				case "AM_SPD_IX":
 				case "PM_SPD_IX":
-					measure = CTPS.cmpArtApp.fRenderIndex(feature.getProperties()[theme.toLowerCase()]);
+					measure = fRenderIndex(feature.getProperties()[theme.toLowerCase()]);
 					label_begin = "Speed Index: ";
 					label_end = "";
 					break;
 				case "AM_AVTT_IX":
 				case "PM_AVTT_IX":
-					measure = CTPS.cmpArtApp.fRenderIndex(feature.getProperties()[theme.toLowerCase()]);
+					measure = fRenderIndex(feature.getProperties()[theme.toLowerCase()]);
 					label_begin = "Travel Time Index: ";
 					label_end = "";
 					break;
 				default:
-					measure = CTPS.cmpArtApp.fRenderIndex(feature.getProperties()[theme.toLowerCase()]);
+					measure = fRenderIndex(feature.getProperties()[theme.toLowerCase()]);
 					label_begin = "Performance Measure: ";
 					label_end = "";
 			};
@@ -926,8 +928,7 @@ CTPS.cmpArtApp.initDetailMap = function() {
 			CTPS.cmpArtApp.detailPopup.setPosition(coord);
 			$('#detail_popup').show();
 		});
-		
-	});
+	}); // detail map on-click event handler
 	
 	// Set up map theme selection combo box.
 	$.each(CMP_Arterial_Themes.aThemes, function (i, theme) {
@@ -937,7 +938,10 @@ CTPS.cmpArtApp.initDetailMap = function() {
 		}));
 	});
 
-	// Populate combo box of routes from the CMP_Arterial_Routes.oRoutes.aRouteList array.			
+	// Populate combo box of routes from the CMP_Arterial_Routes.oRoutes.aRouteList array.		
+	//
+	// *** TBD: Populate this list from a query of the arterial routes _table_. ***
+	//
 	var aRouteList = CMP_Arterial_Routes.oRoutes.aRouteList;
 	$('#selected_route').append($('<option>', { 
 		value: 0,
@@ -949,10 +953,9 @@ CTPS.cmpArtApp.initDetailMap = function() {
 			text : route.ROUTE 
 		}));
 	});
-	
-}; // CTPS.cmpArtApp.initDetailMap()
+}; // initDetailMap
 
-CTPS.cmpArtApp.initOverviewMap = function() {
+var initOverviewMap = function() {
 	// Base layer: ocean background, NE states, MA towns, MPO boundary ('transparent' === false)
 	var oBaseLayer = new ol.layer.Tile({	
 		source: new ol.source.TileWMS({
@@ -982,18 +985,12 @@ CTPS.cmpArtApp.initOverviewMap = function() {
 		})
 	});
 	
-	
 	// Overview Layers	
-	
-	// CTPS.cmpArtApp.szWMSserverRoot2 = 'http://appsrvr2.ctps.org:6080/arcgis/services/Arterial_Overview_Layers_Ext_2015/MapServer/WMSServer'; 
-	// CTPS.cmpArtApp.szWMSserverRoot2 = 'http://ctps.org/map/ags/Arterial_Overview_Layers_Ext_2015/MapServer/WMSServer'; 
-	// CTPS.cmpArtApp.szWMSserverRoot2 = 'http://lindalino2.ad.ctps.org:6080/arcgis/services/Arterial_Overview_Layers_Ext_2015/MapServer/WMSServer'; 
-	
-	CTPS.cmpArtApp.oOverviewSpeedData = new ol.layer.Tile({	
+	oOverviewSpeedLayer = new ol.layer.Tile({	
 		source: new ol.source.TileWMS({
-			url		: CTPS.cmpArtApp.szWMSserverRoot,
+			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': 'postgis:ctps_cmp_2015_art_routes_ext',
+				'LAYERS': 'postgis:ctps_cmp_2015_art_routes_ext',	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 				'STYLES': 'exp_am_avg_sp',
 				'TRANSPARENT': 'true'
 			}
@@ -1001,18 +998,12 @@ CTPS.cmpArtApp.initOverviewMap = function() {
 		visible: false
 	});
 	
-	
 	// Shields	
-	
-	// CTPS.cmpArtApp.szWMSserverRoot3 = 'http://appsrvr2.ctps.org:6080/arcgis/services/Arterial_Shields_Layer_Ext/MapServer/WMSServer';
-	//CTPS.cmpArtApp.szWMSserverRoot3 = 'http://ctps.org/map/ags/Arterial_Shields_Layer_Ext/MapServer/WMSServer';
-	// CTPS.cmpArtApp.szWMSserverRoot3 = 'http://lindalino2.ad.ctps.org:6080/arcgis/services/Arterial_Shields_Layer_Ext/MapServer/WMSServer';
-	
-	CTPS.cmpArtApp.oOverviewShields = new ol.layer.Tile({	
+	var oOverviewShields = new ol.layer.Tile({	
 		source: new ol.source.TileWMS({
 			url		: CTPS.cmpArtApp.szWMSserverRoot,
 			params	: {
-				'LAYERS': 'postgis:ctps_cmp_2015_art_routes_ext',
+				'LAYERS': 'postgis:ctps_cmp_2015_art_routes_ext',	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 				'STYLES': 'cmp_arterial_shields',
 				'TRANSPARENT': 'true'
 			}
@@ -1021,7 +1012,7 @@ CTPS.cmpArtApp.initOverviewMap = function() {
 	}); 			
 	
 	// Popup Overlay
-	CTPS.cmpArtApp.overviewPopup = new ol.Overlay({
+	var overviewPopup = new ol.Overlay({
 		element	: document.getElementById('overview_popup'),
 		offset : [-48,-11],
 		positioning : 'bottom-left',
@@ -1029,7 +1020,9 @@ CTPS.cmpArtApp.initOverviewMap = function() {
 		//autoPanAnimation : { duration : 250 }
 	});
 	
-    CTPS.cmpArtApp.overviewMap = new ol.Map({
+	// NOTE: The OpenLayers "overviewMap" object is _declared_ global to the app,
+	//       to facilitate debugging, but is acutally created here.
+    overviewMap = new ol.Map({
 		target	: 'overview_map',
 		controls: ol.control.defaults().extend([
 			new ol.control.ScaleLine({
@@ -1038,21 +1031,19 @@ CTPS.cmpArtApp.initOverviewMap = function() {
 		]),
 		layers	: [	oBaseLayer,
 					oRoads,
-					CTPS.cmpArtApp.oOverviewSpeedData,
-					CTPS.cmpArtApp.oOverviewShields ],
-		overlays: [CTPS.cmpArtApp.overviewPopup],
-		view	: new ol.View({
-			projection: projection,
-			center	: CTPS.cmpArtApp.mapCenter,
-			zoom	: CTPS.cmpArtApp.mapZoom
-		})
+					oOverviewSpeedLayer,
+					oOverviewShields ],
+		overlays: [overviewPopup],
+		view	: new ol.View({ projection	: projection, 
+		                        center		: mapCenter,
+								zoom		: mapZoom })
 	});
 	
-	// Event Handler for Click on Map	
-	CTPS.cmpArtApp.overviewMap.on('singleclick', function(e) {
+	// Event Handler for Click on _overview_ map	
+	overviewMap.on('singleclick', function(e) {
 		var coord = e.coordinate;
 		var px = e.pixel;
-		CTPS.cmpArtApp.onClick(coord,px);
+		overviewMapOnClick(coord,px);
 	});
 		
 	// Set up map theme selection combo box.
@@ -1062,30 +1053,30 @@ CTPS.cmpArtApp.initOverviewMap = function() {
 			text : theme.name 
 		}));
 	});
-	
-}; // CTPS.cmpArtApp.initOverviewMap();
+}; // initOverviewMap
 
 function popup(url) {
     var popupWindow = window.open(url,'popUpWindow', 'height=700,width=800,left=10,top=10,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=yes')
-}; // popup()
+}; // popup
 
-CTPS.cmpArtApp.displayHelp = function() {
+displayHelp = function() {
 	popup('cmpArtAppHelp.html');
-}; // CTPS.cmpArtApp.displayHelp()
+}; // displayHelp
 
-CTPS.cmpArtApp.initDownloadText = function() {
-	// var szTemp = "http://www.ctps.org";
-	var szTemp = CTPS.cmpArtApp.szWFSserverRoot + '?';  
+var initDownloadText = function() {
+	var szTemp = szWFSserverRoot + '?';  
 	
 	szTemp += "&service=wfs";
 	szTemp += "&version=1.0.0";
-	szTemp += "&typename=postgis:ctps_cmp_2015_art_routes_ext";
+	szTemp += "&typename=postgis:ctps_cmp_2015_art_routes_ext";		// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 	szTemp += "&request=getfeature";
 	szTemp += "&outputFormat=csv";
 	
 	szTemp += "&propertyname=rte_name,direction,community,seg_begin,seg_end,distance,lanes,spd_limit,";
 	szTemp += "am_cong_sp,am_avg_sp,am_spd_ix,am_avtt_ix,am_delay,am_cong_mn,";
 	szTemp += "pm_cong_sp,pm_avg_sp,pm_spd_ix,pm_avtt_ix,pm_delay,pm_cong_mn";
+	
+	// *** TBD: add am_lottr and pm_lottr properties
 
 	$('.spanForButtonWithLink').each(function() { 
 		$(this).click(function() {
@@ -1098,7 +1089,7 @@ CTPS.cmpArtApp.initDownloadText = function() {
 }; // CTPS.cmpArtApp.initDownloadText()
 
 // Main routine, called when document ready event fires.
-CTPS.cmpArtApp.init = function() { 
+function initialize() { 
 	// Test for browser SVG support.
 	var szMsg =
 	  "Your web browser does not support W3C standard SVG graphics, which is required for the charts rendered by this application"  +
@@ -1127,20 +1118,20 @@ CTPS.cmpArtApp.init = function() {
 	$('.congestion_scan_container_class').hide();
 
 	// Register event handlers.
-	$('#reset_button').bind('click', CTPS.cmpArtApp.resetApplication);
-	$('#help_button').bind('click', CTPS.cmpArtApp.displayHelp);
-	$('.main_display_choice_class').bind('change', CTPS.cmpArtApp.setMainDisplay);
+	$('#reset_button').bind('click', resetApplication);
+	$('#help_button').bind('click', displayHelp);
+	$('.main_display_choice_class').bind('change', setMainDisplay);
 
 	// Event handler for 'overview' panel.
-	$('#selected_theme_overview').bind('change', CTPS.cmpArtApp.setOverviewMapTheme);
+	$('#selected_theme_overview').bind('change', setOverviewMapTheme);
 	// Event handlers for 'detail' panel.
-	$('#selected_route').bind('change', CTPS.cmpArtApp.getData);
-	$('#selected_theme_detail').bind('change', CTPS.cmpArtApp.setDetailMapTheme);
-	$('.detail_display_choice_class').bind('change', CTPS.cmpArtApp.setDetailDisplayFormat);
+	$('#selected_route').bind('change', getData);
+	$('#selected_theme_detail').bind('change', setDetailMapTheme);
+	$('.detail_display_choice_class').bind('change', setDetailDisplayFormat);
 	
-	CTPS.cmpArtApp.initDownloadText();
-	CTPS.cmpArtApp.initOverviewMap();
-	CTPS.cmpArtApp.initDetailMap();	
+	initDownloadText();
+	initOverviewMap();
+	CinitDetailMap();	
 	
 	// Route Number Popup Hide + Event Handlers for "x" Button		
 	$('#overview_popup').hide();
@@ -1148,7 +1139,5 @@ CTPS.cmpArtApp.init = function() {
 	$('#overview_popup_close_x').on('click', function() {
 		$('#overview_popup').hide();
 	});
-	
 	var _DEBUG_HOOK = 0;
-	
-};   // CTPS.cmpArtApp.init()   
+}  // initialize  
