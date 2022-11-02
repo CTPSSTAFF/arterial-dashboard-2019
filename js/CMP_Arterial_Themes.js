@@ -1,31 +1,38 @@
 /**
  *
- * IMPORTANT --> Use of this library requires d3 version 4 so be sure to load 
- *				 <script src="https://d3js.org/d3.v4.js"></script> prior to this script
+ * IMPORTANT --> Use of this JavaScript file requires d3 version 4 (or higher).
+ *               Consequently, the D3 library _must_ be loaded _before_
+ *               this script file is loaded.
  *
- * IMPORTANT --> Use of this library requires OpenLayers 3
+ * IMPORTANT --> Use of this library requires OpenLayers version 3, or higher
  *
  * Description:
- *		This JS library contains information about each of the map/visualization themes 
- * 		used by cmpExpApp.js.
+ *
+ *		This JS library contains information about each of the map/visualization 
+ *      themes used by by the CMP arterial performance dashboards.
  *
  * Usage:
+ *      This script file contains a single, anonymous, immediately-invoked function
+ *      Loading this script file executes this function, which causes an Object
+ *      named CMP_Arterial_Themes to be created and defined. This object contains
+ *      a single property, 'aThemes', an array of objects containing information
+ *      about how to render data according to several 'themes', i.e., symbologies.
+ *
  * 		The records in the "CMP_Arterial_Themes.aThemes" array are as follows:
- * 			name --> text description of the perfomance measure
- *			legend --> .png file for a theme's legend
- *			style --> an OpenLayers Style (ol.style.Style) that can be used to render 
- *					  the route based on the selected performance measure
- * 			theme --> index names for data returned from geoserver
- *			palette --> d3 threshold scale
+ * 			name      --> text description of the perfomance measure
+ *			legend    --> .png file for a theme's legend
+ *			style     --> an OpenLayers Style (ol.style.Style) that can be used to render 
+ *					      the route based on the selected performance measure
+ * 			theme     --> index names for data returned from geoserver
+ *			palette   --> d3 threshold scale
  *			yAxisText --> yAxis label for d3 chart
  *
  *  - EKE 5/31/17, 6/13/17
  *  - BK 10/30/18 - First crack at refactoring code.
+ *  - BK 11/02/22 - Improved documentation.
  *
  */
-
 (function() {
-	
 	var strokeColor;
 	
 	// Domain, range, and threshold scale for the strokeColor for each metric.
@@ -45,9 +52,7 @@
 	var ttIxStrokeScale = d3.scaleThreshold().domain(ttIxDomain).range(ttIxRange);
 	
 	return CMP_Arterial_Themes = {
-		
 		aThemes : [	
-		
 			{ name:		'Select a map theme', 
 			  legend: 	'', 
 			  sld: 		'',
@@ -197,10 +202,7 @@
 							.domain([1.15, 1.30, 2.00])
 							.range(["rgb(175,235,186)", "rgb(105,166,148)", "rgb(205,138,171)", "rgb(153,0,189)"]),
 			  yAxisText:'Travel Time Index'
-			}
-			
+			}		
 		]
-		
 	};
-	
 })();
