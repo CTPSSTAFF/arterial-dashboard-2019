@@ -427,8 +427,7 @@ var getData = function(){
 	//  Submit WFS request to get data for route, and zoom map to it.
 	var cqlFilter = "(rid=='" + iRouteId + "')";
 	var szUrl = szWFSserverRoot + '?';
-		szUrl += '&service=wfs';
-		szUrl += '&version=1.0.0';
+		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
 		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2015_art_routes_ext';
 		szUrl += '&srsname=EPSG:26986';
@@ -472,7 +471,7 @@ var getData = function(){
 									oBounds.maxx.push(oGeo[2]);
 									oBounds.maxy.push(oGeo[3]);							
 									
-									aDatastore[i] = {	'MYID'		: i, 
+									aDataStore[i] = {	'MYID'		: i, 
 														'COMMUNITY'	: attrs.community,					
 														'FROM_MEAS'	: attrs.from_meas,
 														'TO_MEAS'	: attrs.to_meas,
@@ -519,7 +518,7 @@ var getData = function(){
 								var dCumDistance = 0; 
 								for (i = 0; i < aDataStore.length; i = i + 1) {
 									aDataStore[i].START_DISTANCE = dCumDistance;
-									dCumDistance = dCumDistance + parseFloat(store[i].DISTANCE);
+									dCumDistance = dCumDistance + parseFloat(aDataStore[i].DISTANCE);
 								};
 								
 								// Animated transition
@@ -533,12 +532,12 @@ var getData = function(){
 								oHighlightLayer.setSource(vSource);
 								
 								// Render data
-								renderData(store);
+								renderData(aDataStore);
 								// Refresh detail sub-display.
 								refreshDetailDisplay();
 							},
 			 error		: 	function (qXHR, textStatus, errorThrown ) {
-								alert('WFS request in timerFunc failed.\n' +
+								alert('WFS request in getData failed.\n' +
 										'Status: ' + textStatus + '\n' +
 										'Error:  ' + errorThrown);
 							}							
@@ -551,7 +550,7 @@ var showSelectedGraphic = function(iThemeId) {
 		$('#detail_legend').hide();
 		$('#graphic_div').hide();
 	} else if (iThemeId > 0 && iThemeId < CMP_Arterial_Themes.aThemes.length) {
-		renderData(store);
+		renderData(aDataStore);
 		$('#graphic_div').show();
 	} else {
 		alert("Invalid theme ID: " + iThemeId);
@@ -750,8 +749,7 @@ var overviewMapOnClick = function(coord,px) {
 	
 	//  Submit WFS request to get data for route, and zoom map to it.
 	var szUrl = szWFSserverRoot + '?';
-		szUrl += '&service=wfs';
-		szUrl += '&version=1.0.0';
+		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
 		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2015_art_routes_ext';	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 		szUrl += '&srsname=EPSG:26986';
@@ -1066,9 +1064,8 @@ displayHelp = function() {
 
 var initDownloadText = function() {
 	var szTemp = szWFSserverRoot + '?';  
-	
-	szTemp += "&service=wfs";
-	szTemp += "&version=1.0.0";
+
+	szTemp += "service=wfs";
 	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2015_art_routes_ext";		// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
 	szTemp += "&request=getfeature";
 	szTemp += "&outputFormat=csv";
