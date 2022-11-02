@@ -94,7 +94,7 @@ ol.proj.addCoordinateTransforms(
 // Some useful functions for formatted rendering of attribute values
 var fRenderLength = function(dLength) { if (dLength === null || dLength === undefined) { return("N/A"); } else {return(dLength.toFixed(2)); } },
     fRenderSpeed = function(dSpeed) { if (dSpeed === null) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
-    fRenderCongSpeed = function(dSpeed) { if (dSpeed === 0) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
+    fRenderCongSpeed = function(dSpeed) { if (dSpeed === null || dSpeed === 0) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
     fRenderMinutes = function(dMinutes) { if (dMinutes === null) { return("N/A"); } else { return(dMinutes.toFixed(1)) } },
     fRenderIndex = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } }
 
@@ -429,7 +429,7 @@ var getData = function(){
 	var szUrl = szWFSserverRoot + '?';
 		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2015_art_routes_ext';
+		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1';
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&cql_filter=' + cqlFilter;
@@ -751,7 +751,7 @@ var overviewMapOnClick = function(coord,px) {
 	var szUrl = szWFSserverRoot + '?';
 		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2015_art_routes_ext';	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
+		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1';
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&bbox=' + oBoundsString + ',EPSG:26986';
@@ -828,7 +828,7 @@ var initDetailMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2015_art_routes_ext',	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1',
 				'STYLES': 'line',
 				'TRANSPARENT': 'true'
 			}
@@ -989,7 +989,7 @@ var initOverviewMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2015_art_routes_ext',	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1',
 				'STYLES': 'exp_am_avg_sp',
 				'TRANSPARENT': 'true'
 			}
@@ -1002,7 +1002,7 @@ var initOverviewMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2015_art_routes_ext',	// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1',
 				'STYLES': 'cmp_arterial_shields',
 				'TRANSPARENT': 'true'
 			}
@@ -1066,7 +1066,7 @@ var initDownloadText = function() {
 	var szTemp = szWFSserverRoot + '?';  
 
 	szTemp += "service=wfs";
-	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2015_art_routes_ext";		// *** UPDATE THIS TO 2019 DATA, WHEN AVAILABLE ***
+	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2019_art_routes_ext_v1";
 	szTemp += "&request=getfeature";
 	szTemp += "&outputFormat=csv";
 	
