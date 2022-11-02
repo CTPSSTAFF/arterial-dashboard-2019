@@ -96,7 +96,8 @@ var fRenderLength = function(dLength) { if (dLength === null || dLength === unde
     fRenderSpeed = function(dSpeed) { if (dSpeed === null) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
     fRenderCongSpeed = function(dSpeed) { if (dSpeed === null || dSpeed === 0) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
     fRenderMinutes = function(dMinutes) { if (dMinutes === null) { return("N/A"); } else { return(dMinutes.toFixed(1)) } },
-    fRenderIndex = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } }
+    fRenderIndex = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } },
+	fRenderLottr = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } };
 
 // Renders reusable d3 chart with "data" from aDataStore, and other used-input variables
 var createChart = function() {
@@ -356,7 +357,8 @@ var renderTable = function(dataStore, szRouteDesc) {
 						{ header : 	'Speed index (AM)',	dataIndex : 'AM_SPD_IX', renderer: fRenderIndex },
 						{ header : 	'Average travel-time index (AM)', dataIndex : 'AM_AVTT_IX', renderer: fRenderIndex },
 						{ header : 	'Delay (AM)',	dataIndex : 'AM_DELAY', renderer: fRenderLength },
-						{ header : 	'Congested minutes (AM)',	dataIndex : 'AM_CONG_MN', renderer: fRenderLength },						
+						{ header : 	'Congested minutes (AM)',	dataIndex : 'AM_CONG_MN', renderer: fRenderLength },	
+						{ header : 'LOTTR (AM)', dataIndex : 'AM_LOTTR', renderer: fRenderLottr },
 						// PM stats
 						{ header : 	'Congested speed (PM)', dataIndex : 'PM_CONG_SP', renderer: fRenderCongSpeed },
 						{ header : 	'Average Speed (PM)', dataIndex : 'PM_AVG_SP', renderer: fRenderSpeed },
@@ -364,6 +366,7 @@ var renderTable = function(dataStore, szRouteDesc) {
 						{ header : 	'Average travel-time index (PM)', dataIndex : 'PM_AVTT_IX', renderer: fRenderIndex },
 						{ header : 	'Delay (PM)',	dataIndex : 'PM_DELAY', renderer: fRenderLength },
 						{ header : 	'Congested minutes (PM)',	dataIndex : 'PM_CONG_MN', renderer: fRenderLength },
+						{ header : 'LOTTR (PM)', dataIndex : 'PM_LOTTR', renderer : fRenderLottr }
 					];
 
 	var szSummary = 'Columns are: community(ies), beginning location, ending location, '
@@ -489,7 +492,8 @@ var getData = function(){
 														'AM_AVTT_IX': attrs.am_avtt_ix,
 														'AM_5PTT_IX': attrs.am_5ptt_ix,												
 														'AM_SPD_IX'	: attrs.am_spd_ix,
-														'AM_CONG_MN': attrs.am_cong_mn,												
+														'AM_CONG_MN': attrs.am_cong_mn,		
+														'AM_LOTTR'  : attrs.am_lottr,
 														// PM stats
 														'PM_AVG_SP'	: attrs.pm_avg_sp,
 														'PM_CONG_SP': attrs.pm_cong_sp,			
@@ -497,7 +501,8 @@ var getData = function(){
 														'PM_AVTT_IX': attrs.pm_avtt_ix,
 														'PM_5PTT_IX': attrs.pm_5ptt_ix,												
 														'PM_SPD_IX'	: attrs.pm_spd_ix,	
-														'PM_CONG_MN': attrs.pm_cong_mn
+														'PM_CONG_MN': attrs.pm_cong_mn,
+														'PM_LOTTR'  : attrs.pm_lottr
 													};	                                         
 								};
 								
