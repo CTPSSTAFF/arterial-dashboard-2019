@@ -432,7 +432,7 @@ var getData = function(){
 	var szUrl = szWFSserverRoot + '?';
 		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1';
+		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v3';
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&cql_filter=' + cqlFilter;
@@ -756,7 +756,7 @@ var overviewMapOnClick = function(coord,px) {
 	var szUrl = szWFSserverRoot + '?';
 		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1';
+		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v3';
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&bbox=' + oBoundsString + ',EPSG:26986';
@@ -833,7 +833,7 @@ var initDetailMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1',
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v3',
 				'STYLES': 'line',
 				'TRANSPARENT': 'true'
 			}
@@ -994,7 +994,7 @@ var initOverviewMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1',
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v3',
 				'STYLES': 'exp_am_avg_sp',
 				'TRANSPARENT': 'true'
 			}
@@ -1007,7 +1007,7 @@ var initOverviewMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v1',
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v3',
 				'STYLES': 'cmp_arterial_shields',
 				'TRANSPARENT': 'true'
 			}
@@ -1071,13 +1071,13 @@ var initDownloadText = function() {
 	var szTemp = szWFSserverRoot + '?';  
 
 	szTemp += "service=wfs";
-	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2019_art_routes_ext_v1";
+	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2019_art_routes_ext_v3";
 	szTemp += "&request=getfeature";
 	szTemp += "&outputFormat=csv";
 	
 	szTemp += "&propertyname=rte_name,direction,community,seg_begin,seg_end,distance,lanes,spd_limit,";
 	szTemp += "am_cong_sp,am_avg_sp,am_spd_ix,am_avtt_ix,am_delay,am_cong_mn,";
-	szTemp += "pm_cong_sp,pm_avg_sp,pm_spd_ix,pm_avtt_ix,pm_delay,pm_cong_mn";
+	szTemp += "pm_cong_sp,pm_avg_sp,pm_spd_ix,pm_avtt_ix,pm_delay,pm_cong_mn,am_lottr,pm_lottr";
 	
 	// *** TBD: add am_lottr and pm_lottr properties
 
