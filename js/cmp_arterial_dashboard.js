@@ -1079,7 +1079,6 @@ var initDownloadText = function() {
 	szTemp += "am_cong_sp,am_avg_sp,am_spd_ix,am_avtt_ix,am_delay,am_cong_mn,";
 	szTemp += "pm_cong_sp,pm_avg_sp,pm_spd_ix,pm_avtt_ix,pm_delay,pm_cong_mn,am_lottr,pm_lottr";
 	
-	// *** TBD: add am_lottr and pm_lottr properties
 
 	$('.spanForButtonWithLink').each(function() { 
 		$(this).click(function() {
