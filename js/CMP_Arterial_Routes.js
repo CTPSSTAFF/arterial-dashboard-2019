@@ -332,6 +332,9 @@
 				"ROUTE_NUM": 23,
 				"CONGESTION_SCAN_DIV": "scan_none"
 			  },
+			  /*********************************************************
+			  * Per Ryan Hicks (December 21, 2022):
+			  * Do not include Route 14 in the CMP; it lies outside the MPO.
 			  {
 				"ROUTE": "Route 14 Eastbound",
 				"DIRECTION": "EB",
@@ -346,6 +349,7 @@
 				"ROUTE_NUM": 24,
 				"CONGESTION_SCAN_DIV": "scan_none"
 			  },
+			  *********************************************************/
 			  {
 				"ROUTE": "Route 140 Eastbound",
 				"DIRECTION": "EB",
