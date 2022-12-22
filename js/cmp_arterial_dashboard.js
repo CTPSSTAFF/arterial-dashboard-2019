@@ -91,13 +91,63 @@ ol.proj.addCoordinateTransforms(
 	}
 );
 
-// Some useful functions for formatted rendering of attribute values
-var fRenderLength = function(dLength) { if (dLength === null || dLength === undefined) { return("N/A"); } else {return(dLength.toFixed(2)); } },
-    fRenderSpeed = function(dSpeed) { if (dSpeed === null) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
-    fRenderCongSpeed = function(dSpeed) { if (dSpeed === null || dSpeed === 0) { return("N/A"); } else { return(dSpeed.toFixed(0)); } },
-    fRenderMinutes = function(dMinutes) { if (dMinutes === null) { return("N/A"); } else { return(dMinutes.toFixed(1)) } },
-    fRenderIndex = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } },
-	fRenderLottr = function(dIndex) { if (dIndex === null) { return("N/A"); } else {return(dIndex.toFixed(2)); } };
+// Some useful functions for formatted rendering of attribute values.
+// Here, we have to equip the renderers for performance metric values
+// to deal with 'synthetic' TMCs, for which we have no data.
+var fRenderLength = function(dLength) { 
+	if (dLength === 'no data') { 
+		return('no data');
+	} else if (dLength === null || dLength === undefined) { 
+		return("N/A"); 
+	} else {
+		return(dLength.toFixed(2)); 
+	} 
+};
+var fRenderSpeed = function(dSpeed) { 
+	if (dSpeed === 'no data') { 
+		return('no data');
+	} else if (dSpeed === null) { 
+		return("N/A"); 	
+	} else {
+		return(dSpeed.toFixed(0)); 
+	}
+};
+var fRenderCongSpeed = function(dSpeed) { 
+	if (dSpeed === 'no data') { 
+		return('no data');
+	} else if  (dSpeed === null || dSpeed === 0) { 
+		return("N/A"); 
+	} else {
+		return(dSpeed.toFixed(0)); 
+	}
+};
+var fRenderMinutes = function(dMinutes) { 
+	if (dMinutes === 'no data') { 
+		return('no data');
+	} else if (dMinutes === null) { 
+		return("N/A"); 
+	} else {
+		return(dMinutes.toFixed(1)) 
+	}
+};
+var fRenderIndex = function(dIndex) { 
+	if (dIndex === 'no data') {
+		return('no data');
+	} else if (dIndex === null) { 
+		return("N/A"); 
+	} else {
+		return(dIndex.toFixed(2));
+	}
+};
+var fRenderLottr = function(dIndex) { 
+	if (dIndex === 'no data') {
+		return('no data');
+	} else if (dIndex === null) { 
+		return("N/A"); 
+	} else {
+		return(dIndex.toFixed(2)); 
+	}
+};
 
 // Renders reusable d3 chart with "data" from aDataStore, and other used-input variables
 var createChart = function() {
@@ -427,12 +477,13 @@ var getData = function(){
 		return;
 	};
 	
-	//  Submit WFS request to get data for route, and zoom map to it.
-	var cqlFilter = "(rid=='" + iRouteId + "')";
+	// Submit WFS request to get data for route, and zoom map to it.
+	// The attribute specifying the CMP route ID is now called cmp_rid; it was 'rid' in the past.
+	var cqlFilter = "(cmp_rid=='" + iRouteId + "')";
 	var szUrl = szWFSserverRoot + '?';
 		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v4';
+		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v5';
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&cql_filter=' + cqlFilter;
@@ -475,6 +526,7 @@ var getData = function(){
 									oBounds.maxy.push(oGeo[3]);							
 									
 									aDataStore[i] = {	'MYID'		: i, 
+									                    'TMC'		: attrs.tmc,		// Needed to identify 'synthetic' TMCs, to be handled specially, below
 														'COMMUNITY'	: attrs.community,					
 														'FROM_MEAS'	: attrs.from_meas,
 														'TO_MEAS'	: attrs.to_meas,
@@ -525,6 +577,34 @@ var getData = function(){
 									aDataStore[i].START_DISTANCE = dCumDistance;
 									dCumDistance = dCumDistance + parseFloat(aDataStore[i].DISTANCE);
 								};
+								
+								// Deal with 'synthetic' TMCs:
+								// Performance measure values have been set to 0, but should be _displayed_ as 'no data'.
+								// We need to do this 'brute-force' because the rendering functions only have access to
+								// the data value to be rendered, not to other properties of the object in question.
+								for (i = 0; i < aDataStore.length; i = i + 1) {
+									if (aDataStore[i].TMC[0] === 'C') {
+										// synthetic TMC
+										aDataStore[i].AM_AVG_SP  = 'no data';
+										aDataStore[i].AM_CONG_SP = 'no data';
+										aDataStore[i].AM_DELAY   = 'no data';
+										aDataStore[i].AM_CONG_SP = 'no data';
+										aDataStore[i].AM_AVTT_IX = 'no data';
+										aDataStore[i].AM_5PTT_IX = 'no data';
+										aDataStore[i].AM_SPD_IX  = 'no data';
+										aDataStore[i].AM_CONG_MN = 'no data';
+										aDataStore[i].AM_LOTTR   = 'no data';
+										aDataStore[i].PM_AVG_SP  = 'no data';
+										aDataStore[i].PM_CONG_SP = 'no data';
+										aDataStore[i].PM_DELAY   = 'no data';
+										aDataStore[i].PM_CONG_SP = 'no data';
+										aDataStore[i].PM_AVTT_IX = 'no data';
+										aDataStore[i].PM_5PTT_IX = 'no data';
+										aDataStore[i].PM_SPD_IX  = 'no data';
+										aDataStore[i].PM_CONG_MN = 'no data';
+										aDataStore[i].PM_LOTTR   = 'no data';	
+									}
+								}
 								
 								// Animated transition
 								var oBoundsRoute = 	[	Math.min.apply(null,oBounds.minx),
@@ -756,7 +836,7 @@ var overviewMapOnClick = function(coord,px) {
 	var szUrl = szWFSserverRoot + '?';
 		szUrl += 'service=wfs';
 		szUrl += '&request=getfeature';
-		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v4';
+		szUrl += '&typename=' + szWorkspace + 'ctps_cmp_2019_art_routes_ext_v5';
 		szUrl += '&srsname=EPSG:26986';
 		szUrl += '&outputformat=json';
 		szUrl += '&bbox=' + oBoundsString + ',EPSG:26986';
@@ -833,7 +913,7 @@ var initDetailMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v4',
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v5',
 				'STYLES': 'line',
 				'TRANSPARENT': 'true'
 			}
@@ -994,7 +1074,7 @@ var initOverviewMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v4',
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v5',
 				'STYLES': 'exp_am_avg_sp',
 				'TRANSPARENT': 'true'
 			}
@@ -1007,7 +1087,7 @@ var initOverviewMap = function() {
 		source: new ol.source.TileWMS({
 			url		: szWMSserverRoot,
 			params	: {
-				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v4',
+				'LAYERS': szWorkspace + 'ctps_cmp_2019_art_routes_ext_v5',
 				'STYLES': 'cmp_arterial_shields',
 				'TRANSPARENT': 'true'
 			}
@@ -1071,7 +1151,7 @@ var initDownloadText = function() {
 	var szTemp = szWFSserverRoot + '?';  
 
 	szTemp += "service=wfs";
-	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2019_art_routes_ext_v4";
+	szTemp += "&typename=" + szWorkspace + "ctps_cmp_2019_art_routes_ext_v5";
 	szTemp += "&request=getfeature";
 	szTemp += "&outputFormat=csv";
 	
