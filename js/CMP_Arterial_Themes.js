@@ -34,20 +34,26 @@
  */
 (function() {
 	var strokeColor;
+
+	// Gray for 0, i.e., 'no data' values
+	var color_gray = "rgba(128, 128, 128, 0.9)";	
 	
 	// Domain, range, and threshold scale for the strokeColor for each metric.
-	var congTimeDomain = [15, 30, 45, Infinity];
-	var congTimeRange = ["rgba(175, 235, 186, 0.9)", "rgba(105, 166, 148, 0.9)",
+	var congTimeDomain = [0.001, 15, 30, 45, Infinity];
+	var congTimeRange = [color_gray,
+						 "rgba(175, 235, 186, 0.9)", "rgba(105, 166, 148, 0.9)",
 	                     "rgba(205, 138, 171, 0.9)", "rgba(153, 0, 189, 0.9)"];
 	var congTimeStrokeScale = d3.scaleThreshold().domain(congTimeDomain).range(congTimeRange);
 	
-	var speedIxDomain = [0.400, 0.500, 0.700, 0.900, Infinity]; 
-	var speedIxRange = ["rgba(230, 0, 169, 0.9)", "rgba(169, 0, 230, 0.9)",
+	var speedIxDomain = [0.001, 0.400, 0.500, 0.700, 0.900, Infinity]; 
+	var speedIxRange = [color_gray,
+						"rgba(230, 0, 169, 0.9)", "rgba(169, 0, 230, 0.9)",
 						"rgba(0, 112, 255, 0.9)", "rgba(115, 178, 255, 0.9)", "rgba(190, 210, 255, 0.9)"];
 	var speedIxStrokeScale = d3.scaleThreshold().domain(speedIxDomain).range(speedIxRange);
 	
-	var ttIxDomain = [1.150, 1.300, 2.000, Infinity];
-	var ttIxRange = ["rgba(175, 235, 186, 0.9)", "rgba(105, 166, 148, 0.9)",
+	var ttIxDomain = [0.001, 1.150, 1.300, 2.000, Infinity];
+	var ttIxRange = [color_gray, 
+	                 "rgba(175, 235, 186, 0.9)", "rgba(105, 166, 148, 0.9)",
 			         "rgba(205, 138, 171, 0.9)", "rgba(153, 0, 189, 0.9)"];
 	var ttIxStrokeScale = d3.scaleThreshold().domain(ttIxDomain).range(ttIxRange);
 	
@@ -121,6 +127,9 @@
 							var val = feature.get("am_spd_ix");
 							strokeColor = speedIxStrokeScale(val);
 							
+							// debug
+							console.log('am_spd_ix = ' + val + ' color = ' + strokeColor);
+	
 							return [new ol.style.Style({
 								fill	: new ol.style.Fill({ color: 'rgba(255,255,255,0.1)' }), 
 								stroke 	: new ol.style.Stroke({ 
@@ -142,6 +151,9 @@
 			  style:	function(feature) {
 							var val = feature.get("pm_spd_ix");
 							strokeColor = speedIxStrokeScale(val);
+							
+							// debug
+							console.log('pm_spd_ix = ' + ' color = ' + strokeColor);
 							
 							return [new ol.style.Style({
 								fill	: new ol.style.Fill({ color: 'rgba(255,255,255,0.1)' }), 
