@@ -29,8 +29,16 @@ h3 {
 }
 p {
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: .9em;
+	/* font-size: .9em; */
+	font-size: 1.0em;
 	color: #000000;
+}
+p.formula {
+	font-family: Arial, Helvetica, sans-serif;
+	/*font-size: .9em; */
+	font-size: 1.0em;
+	color: #000000;
+	font-style: italic;
 }
 a {
     text-decoration: none;
@@ -71,103 +79,239 @@ return false;
 <p>
 The Congestion Management Process (CMP) is a federally mandated procedure that is used to monitor traffic congestion. 
 The CMP is required for any Traffic Management Area (TMA) that currently has non-attainment status for air quality standards. 
-Two essential steps of the CMP are to develop performance measures and monitor performance. 
-The performance measures in the Arterial Performance Dashboard monitor roadway congestion in the MPO region’s CMP network
- based on three factors: 1) duration, 2) intensity, and 3) reliability.</p>
+Two essential steps of the CMP are to develop performance measures and monitor performance. The performance measures in the 
+Arterial Performance Dashboard monitor roadway congestion in the MPO region’s CMP network based on 
+three factors: 1) duration, 2) intensity, and 3) reliability.
+ </p>
 
-<p>Dimensions of Measuring Roadway Congestion<ol>
-<li>Duration—Measures the amount of time that congestion affects a region, corridor, or roadway segment. Performance measures include: Congested Time</li> 
-<li>Intensity—Indicates the severity of congestion. Typically, this is used to differentiate between various degrees of congestion in transportation corridors. Performance measures include: Average Travel Speed, Speed Index, Delay Per Mile</li>
-<li>Reliability—Compares the difference between ideal and worst traffic conditions, accounting for nonrecurring as well as recurring congestion in the travel network. Performance measures include: Travel Time Index, Planning Time Index</li></ol></p>
-<p></p>
+<h4>Dimensions of Measuring Roadway Congestion</h4>
+<ol>
+<li>
+Duration—Measures the amount of time that congestion affects a region, corridor, or roadway segment. Performance measures include Congested Time
+</li>
+<li>
+Intensity—Indicates the severity of congestion. Typically, this is used to differentiate between various degrees of congestion in transportation corridors. 
+Performance measures include Average Travel Speed, Speed Index, Delay Per Mile
+</li>
+<li>
+Reliability—Compares the difference between ideal and worst traffic conditions, accounting for nonrecurring as well as recurring congestion in the travel network.
+Performance measures include Travel Time Index, Planning Time Index
+</li>
+</ol>
 
-<p>Definitions of Performance Measures<ol>
-<li>Congested Time (per peak-period hour) is the average number of minutes that drivers experience congested conditions during the peak period. Congestion is considered to persist on an arterial roadway when the average speed is less than 19 miles per hour (MPH) Congested time is measured in minutes per peak-period hour.</li>
-<p>Congested Time = (number of samples with congestion below speed threshold / number of samples used) X number of minutes in measured period</p>
-<li>Speed index is equal to the average speed divided by the posted speed limit of a Traffic Message Channel (TMC). Speed index indicates congestion more accurately than travel speeds alone because low travel speeds may be a result of low speed limits on certain facilities.</li>
-<p>Speed Index = average speed / posted speed limit</p> 
-<li>Travel Time Index directly compares peak-period travel time conditions with free-flow travel time conditions. Travel time Index indicates how much contingency time should be considered to ensure an on-time arrival during the peak period versus optimum travel times.</li>
-<p>Travel time index = average peak-period travel time / free-flow travel time</p></ol>
-<p></p>
+<h4>Definitions of Performance Measures</h4>
+<p>
+Congested Time (per peak-period hour) is the average number of minutes that drivers experience congested conditions during the peak period. 
+Congestion is considered to persist on an arterial roadway when the average speed is less than 19 miles per hour (MPH). Congested time is measured in minutes per peak-period hour.
+</p>
+<p class="formula">
+Congested Time = (number of samples with congestion below speed threshold / number of samples used) X number of minutes in measured period
+</p>
+<p>
+Speed index is equal to the average speed divided by the posted speed limit of a Traffic Message Channel (TMC). 
+Speed index indicates congestion more accurately than travel speeds alone because low travel speeds may be a result of low speed limits on certain facilities
+</p>
+<p class="formula">
+Speed Index = average speed / posted speed limit
+</p>
+<p>
+Travel Time Index directly compares peak-period travel time conditions with free-flow travel time conditions. 
+Travel Time Index indicates how much contingency time should be considered to ensure an on-time arrival during the peak period versus optimum travel times.
+</p>
+<p class="formula">
+Travel Time Index = average peak-period travel time / free-flow travel time
+</p>
 
-<p>Table Attributes</p>
-<p>Traffic Message Channel: A technology used to communicate traffic conditions to motorists. TMCs are a universal standard that define the beginning and end of roadway segments for several global positioning system (GPS) monitoring companies. TMC segments on limited-access roadways often, but not always, extend either from interchange to interchange or span the entire interchange.</p>
-<p>Beginning at: Approximate start location of the TMC</p>
-<p>Ending at: Approximate end location of the TMC</p>
-<p>Length (Miles): Directional length of the TMC</p>
-<p>Number of Lanes: Number of lanes per TMC (provided by the Massachusetts Department of Transportation (MassDOT) roadway inventory)</p>
-<p>Speed Limit: Posted speed limit for a TMC (provided by the MassDOT roadway inventory)</p>
-<p>Congestion Speed: The average speed for samples that are less than the speed threshold of congestion. A sample is considered to be congested if the average speed is lower than 19 MPH on an arterial roadway.</p>
-<p>Average Travel-Time Index: (see Travel Time Index)</p>
-<p>Congestion Minutes: (See Congestion Time)</p>
-<p></p>
+
+<h4>Table Attributes</h4>
+
+<p>
+Traffic Message Channel: A technology used to communicate traffic conditions to motorists.
+TMCs are a universal standard that define the beginning and end of roadway segments for several global positioning system (GPS) monitoring companies. 
+TMC segments on limited-access roadways often, but not always, extend either from interchange to interchange or span the entire interchange.
+</p>
+
+<p>
+Community(ies): List of communities in which the TMC is located 
+</p>
+
+<p>
+Beginning at: Approximate start location of the TMC
+</p>
+
+<p>
+Ending at: Approximate end location of the TMC
+</p>
+
+<p>
+Length (miles): Directional length of the TMC
+</p>
+
+<p>
+Number of Lanes: Number of lanes per TMC (provided by the Massachusetts Department of Transportation [MassDOT] roadway inventory)
+</p>
+
+<p>
+Speed Limit: Posted speed limit for a TMC (provided by the MassDOT roadway inventory)
+</p>
+
+<p>
+Congested Speed: The average speed for samples that are less than the speed threshold of congestion. 
+A sample is considered to be congested if the average speed is lower than 19 MPH on an arterial roadway.
+</p>
+
+<p>
+Average Travel-Time Index: see Travel Time Index
+</p>
+
+<p>
+Congested Minutes: See Congested Time
+</p>
+
+<p>
+Delay: This represents total delay for a roadway TMC segment. Delay is displayed in minutes. This is an arterial exclusive performance measure that is different from delay-per-mile.
+</p>
+
+<p>
+Level of Travel Time Reliability (LOTTR):LOTTR is a performance measure that measures the day-to-day variation of travel times of a roadway segment. 
+This performance measure is federally mandated; 
+however, the version that is displayed on the arterial dashboard has different standards and monitoring times, which are adapted to the Boston Region MPOs CMP. 
+</p>
+
+<p>
+Level of Travel Time Reliability&nbsp;&equals;&nbsp; 80<sup>th</sup> percentile travel time during peak period / 50<sup>th</sup> percentile travel time during peak period
+</p>
+
+
 
 <h3>Using the Application</h3>
-<p>The Home screen displays a map of the Boston MPO region, with the limited-access highways outlined in grey.</p>
-<p></p>
-<p>Viewing the Regional Overview Map</p>
-<p>The Regional Overview Map shows the data reflecting the performance measures for limited-access roadways in the entire Boston MPO region.<ol>
-<li>Click the down arrow in the Select-a-Map-Theme drop-down menu bar (upper-left corner of page). This will display a list of AM and PM performance-measure types from which you may select a map theme (performance measure).</li> 
-<li>When you select a theme, the data representing the selected performance measure will appear as an overlay on the map. A color-coded legend will appear in the upper left-hand corner that displays the thresholds and corresponding palettes for the performance measures.</li> 
-<li>You may zoom in or out of the map using the + and – buttons located in the upper-left corner of the map. When you zoom in at a high level, the names of the municipalities will become visible on the map.</li></ol></p> 
-<p></p>
+<p>
+The Home screen displays a map of the Boston MPO region, with the limited-access highways outlined in grey.
+</p>
 
-<p>Viewing the Data-by-Route Map</p>
-<p>The Data-by-Route Map shows the performance measures for an individual route; each route is delineated by direction.<ol>
-<li>Clicking the Data-by-Route button will display the Data-by-Route Map page.</li> 
-<li>You will see two drop-down menus in the upper-left corner: Select a Route, and Select a Map Theme.</li>  
-<li>Click the down arrow of the top menu, Select a Route. You will see that each route is distinguished by route name and direction. Select a route to display.</li> 
-<li>Click the down arrow of the second drop-down menu, Select-a-Map Theme to choose a performance measure. </li> 
-<li>The data representing the selected performance measure will appear on the map. Only the data for the selected route and direction is displayed on the map.
-<li>Beneath the drop-down menus is a legend that displays the thresholds and color palette for the performance measures. </li> 
-<li>You may zoom in or out of the map using the + and – buttons located in the upper-left corner of the map. When you zoom in at a high level, the names of the municipalities will become visible on the map. </li></ol></p>
-<p></p>
+<h4>Viewing the Regional Overview Map</h4>
+<p>
+The Regional Overview Map shows the data reflecting the performance measures for limited-access roadways in the entire Boston MPO region.
+</p>
+<ol>
+<li>
+Click the down arrow in the Select-a-Map-Theme drop-down menu bar (upper-left corner of page). 
+This will display a list of AM and PM performance-measure types from which you may select a map theme (performance measure).
+</li>
+<li>
+When you select a theme, the data representing the selected performance measure will appear as an overlay on the map. 
+A color-coded legend will appear in the upper left-hand corner that displays the thresholds and corresponding palettes for the performance measures.
+</li>
+<li>
+You may zoom in or out of the map using the &plus; and &minus; buttons located in the upper-left corner of the map. 
+When you zoom in at a high level, the names of the municipalities will become visible on the map.
+</li>
+</ol>
 
-<p>Viewing the Accessible Table</p>
-<p> 
-<li>The accessible table is automatically displayed in the Data-by-Route View. Scroll down to see the entire table.</li>
-<li>The accessible table displays all of the attributes that are visualized on the map. For a description of each column, see the Table Attributes section above.</li>
-<p></p>
+<h4>Viewing the Data-by-Route Map</h4>
+<ol>
+<li>
+Clicking the Data-by-Route button will display the Data-by-Route Map page
+</li>
+<li>
+You will see two drop-down menus in the upper-left corner: Select a Route, and Select a Map Theme.
+</li>
+<li>
+Click the down arrow of the top menu, Select a Route. You will see that each route is distinguished by route name and direction. Select a route to display.
+</li>
+<li>
+Click the down arrow of the second drop-down menu, Select-a-Map Theme to choose a performance measure.
+</li>
+<li>
+The data representing the selected performance measure will appear on the map. Only the data for the selected route and direction is displayed on the map.
+</li>
+<li>
+Beneath the drop-down menus is a legend that displays the thresholds and color palette for the performance measures.
+</li>
+<li>
+You may zoom in or out of the map using the + and – buttons located in the upper-left corner of the map. 
+When you zoom in at a high level, the names of the municipalities will become visible on the map.
+</li>
+</ol>
 
-<p>Viewing the Graph for Selected Theme</p>
-<p>Each route represented on the Data-by-Route Map is accompanied by a graph that presents the selected performance measure relative to the location in the corridor (displayed in miles).<ol>
-<li>In the Data-by-Route view, click the Graph-for-Selected-Theme button. A graph will appear at the bottom of the page. Scroll down to see the whole graph, if necessary.</li> 
-<li>The graph displays the attributes for each TMC along the selected route.</li>  
-<li>Moving the cursor over the graph will display a pop-up window that gives more detail about the TMC—its description, start and end points, TMC length, and the value of the selected performance measure.</li></ol></p>
-<p></p>
+<h4>Viewing the Accessible Table</h4>
+<ol>
+<li>
+The accessible table is automatically displayed in the Data-by-Route View. Scroll down to see the entire table.
+</li>
+<li>
+The accessible table displays all of the attributes that are visualized on the map. For a description of each column, see the Table Attributes section above.
+</li>
+</ol>
+
+
+<h4>Viewing the Graph for Selected Theme</h4>
+<p>
+Each route represented on the Data-by-Route Map is accompanied by a graph that presents the selected performance measure relative to the location in the corridor (displayed in miles).
+</p>
+<ol>
+<li>
+In the Data-by-Route view, click the Graph-for-Selected-Theme button. A graph will appear at the bottom of the page. Scroll down to see the whole graph, if necessary.
+</li>
+<li>
+The graph displays the attributes for each TMC along the selected route
+</li>
+<li>
+Moving the cursor over the graph will display a pop-up window that gives more detail about the TMC—its description, start and end points, TMC length, 
+and the value of the selected performance measure.
+</li>
+</ol>
 
 <h3>Other Arterial Performance Dashboard Features</h3> 
-<p></p>
-<p>Reset Application</p> 
-<li>Click the Reset Application button to reset the application to its default view.</li>
-<p></p>
 
-<p>Downloading Data to Microsoft Excel</p>
-<p>TMC information—including performance-measure attributes, TMC length, and number of directional lanes—is available for download in comma separated values (.csv) format.<ol>
-<li>Click the Download Data button at the top of the screen.</li> 
-<li>A dialogue box will open, which will give you three choices: Open, Save, and Save and open.</li>  
-<li>If you click the Open button, you will see the data presented in an Excel .csv file, which you can then save.</li>  
-<li>Or, if you click the down arrow of the Save button, you will have the option to Save, Save as (which will allow you to designate the file location), or Save and open.</li></ol></p>
-<p></p>
+<h4>Reset Application</h4>
+<p>
+Click the Reset Application button to reset the application to its default view.
+</p>
+
+<h4>Downloading Data to Microsoft Excel</h4>
+<p>
+TMC information—including performance-measure attributes, TMC length, and number of directional lanes&mdash;is available for download in comma separated values (.csv) format.
+</p>
+<ol>
+<li>
+TMC information—including performance-measure attributes, TMC length, and number of directional lanes—is available for download in comma separated values (.csv) format.
+</li>
+<li>
+A dialogue box will open, which will give you three choices: Open, Save, and Save and open.
+</li>
+<li>
+If you click the Open button, you will see the data presented in an Excel .csv file, which you can then save. 
+Or, if you click the down arrow of the Save button, you will have the option to Save, Save as (which will allow you to designate the file location), or Save and open.
+</li>
+</ol>
+
 
 <h3>Data Sources</h3>
+The data displayed by this application comes from:
+<ul>
+<li>INRIX</li>
+<li>The MassDOT Road Inventory</li>
+<li>Boston Region Metropolitan Planning Organization</li>
+<li>MassDOT</li>
+<li>Massachusetts Office of Geographic Information (MassGIS)</li>
+</ul>
+
 <p>
-The data displayed by this application comes from:<ul>
-<li>Roadway data supplied by INRIX</li>
-<li>Data was collected in 2019, and processed by CTPS</li>
-<li>Additional segment data was provided by the MassDOT roadway inventory</li>
-<li>Central Transportation Planning Staff (CTPS) of the Boston Region Metropolitan Planning Organization (MPO)</li>
-<li>Massachusetts Department of Transportation (MassDOT)</li>
-<li>Massachusetts Department of Transportation (MassDOT)</li>
-<li>Massachusetts Office of Geographic Information (MassGIS)</li></ul></p>
-<p></p>
+INRIX provided the speed data in one-minute increments per TMC, as a sample of 66 non-holiday Tuesdays, Wednesdays, and Thursdays in spring and fall 2019. 
+CTPS collected and processed the data, and calculated the performance measures. 
+The CMP defines peak periods for arterial roadways as follows: AM peak period&mdash;6:30 AM to 9:30 AM; PM peak period&mdash;3:30 PM to 6:30 PM. 
+Free-flow speeds and travel times were collected on the same days between 12:00 AM and 4:00 AM.
+</p>
+
 
 <h3>Technical Requirements</h3>
 <p>
-This application requires a W3C standards-compliant Web browser that includes scalable vector graphics (SVG). S
-upported browsers include Internet Explorer (version 9 and higher), Firefox, Chrome, Safari, and Opera. 
+This application requires a W3C standards-compliant Web browser that includes scalable vector graphics (SVG). 
+Supported browsers include Microsoft Edge, Firefox, Chrome, Safari, and Opera. 
 If the browser in which the application is running does not provide the required SVG support, it will display a warning message to that effect upon start-up; 
-the application will still run, but will not display the graphs it generates.</p>
+the application will still run, but will not display the graphs it generates.
+</p>
 
 <div id="closeLink">
 	<a href="index.html" class="button"
